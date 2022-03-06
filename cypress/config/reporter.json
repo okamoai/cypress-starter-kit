@@ -1,0 +1,11 @@
+{
+  "reporterEnabled": "mochawesome",
+  "mochawesomeReporterOptions": {
+    "timestamp": "yyyy-mm-dd'T'HH:MM:ssl",
+    "reportDir": "cypress/result/json",
+    "reportFilename": "report-[name]-[datetime]",
+    "overwrite": false,
+    "html": false,
+    "json": true
+  }
+}

@@ -1,0 +1,47 @@
+# テストの実行
+name: Tests
+description: Execute Tests
+
+inputs:
+  env:
+    description: Target environment
+    required: true
+  video:
+    description: Record a video
+    required: true
+  report:
+    description: Publish a report in GitHub Pages
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    # setup で生成したキャッシュの復元
+    - name: Cache restore package
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/.cache/Cypress
+          node_modules
+        key: package-install-cache-${{ hashFiles('package-lock.json') }}
+
+    # テストの実行
+    - name: Tests
+      uses: cypress-io/github-action@v2
+      with:
+        install: false
+        record: true
+        parallel: true
+        command: npm run test:${{ inputs.env }} -- --spec cypress/integration/${{ matrix.tests }}/**/*.spec.ts --config video=${{ inputs.video }}
+
+    # 出力された json, screenshot, video を artifact に集積する
+    - if: always() && inputs.report == 'true'
+      name: Save result
+      uses: actions/upload-artifact@v2
+      with:
+        name: result
+        path: cypress/result
+        retention-days: 1

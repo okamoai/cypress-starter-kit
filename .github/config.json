@@ -1,0 +1,7 @@
+{
+  "slack_channel": "cypress-notify",
+  "slack_icon": "https://github.com/okamoai.png?size=48",
+  "slack_title": "Cypress Test Report",
+  "slack_username": "okamoai",
+  "test_targets": ["test1", "test2", "test3/subdir"]
+}

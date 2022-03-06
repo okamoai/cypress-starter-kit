@@ -1,0 +1,51 @@
+# Slack でテスト結果を通知
+name: Notify
+description: Notify in Slack
+
+inputs:
+  slack_webhook:
+    description: Slack incoming-webhook URL
+    required: true
+  report_url:
+    description: GitHub Pages URL
+    required: true
+
+runs:
+  using: composite
+  steps:
+    # 設定ファイル読み込み
+    - id: config
+      uses: ./.github/actions/loadConfig
+
+    # tests で生成したレポートデータの復元
+    - name: Load result
+      uses: actions/download-artifact@v2
+      with:
+        name: result
+        path: cypress/result
+
+    # Slack でテスト結果を通知
+    - name: Notify in Slack
+      run: |
+        # テスト結果をメッセージに変換
+        message=$(node -e 'process.stdout.write(JSON.parse(`${{ steps.config.outputs.test_targets }}`).map(name => fs.readFileSync(`cypress/result/status/${encodeURIComponent(name)}`, "utf-8") + ` ${name}`).join("\n"))')
+        # Slack 通知のための payload 生成
+        payload=$(cat <<EOF
+        {
+          "channel": "${{ steps.config.outputs.slack_channel }}",
+          "username": "${{ steps.config.outputs.slack_username }}",
+          "icon_url": "${{ steps.config.outputs.slack_icon }}",
+          "attachments": [
+            {
+
+              "color": "${{ job.status }}",
+              "title": "${{ steps.config.outputs.slack_title }}",
+              "title_link": "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}",
+              "text": "${message}\n${{ inputs.report_url }}",
+            }
+          ]
+        }
+        EOF
+        )
+        curl -X POST --data-urlencode "payload=${payload}" ${{ inputs.slack_webhook }}
+      shell: bash

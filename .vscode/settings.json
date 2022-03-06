@@ -1,0 +1,20 @@
+{
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true,
+    "source.addMissingImports": true
+  },
+  "cypressHelper.commandForOpen": "npx cypress open -C cypress/config/production.json",
+  "cypressHelper.commandForRun": "npx cypress run -C cypress/config/production.json",
+  "cypressHelper.menuItems": {
+    "OpenCypress": true,
+    "RunCypress": true,
+    "ItOnly": true,
+    "ItSkip": true,
+    "GenerateCustomCommandTypes": true,
+    "GoToCustomCommand": true,
+    "FindCustomCommandReferences": true,
+    "FindStepDefinitionReferences": true,
+    "SchemaGenerator": true
+  }
+}

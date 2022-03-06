@@ -1,0 +1,33 @@
+# テスト実行結果を artifacts に保存
+name: Save status
+description: Save status of Tests
+
+inputs:
+  status:
+    description: Status of Test
+    required: true
+  name:
+    description: name of Test
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    # テスト結果をファイルに出力する
+    - name: Output status
+      run: |
+        mkdir -p cypress/result/status
+        filename=$(node -e "process.stdout.write(encodeURIComponent('${{ inputs.name }}'))")
+        echo -n "${{ inputs.status }}" > cypress/result/status/${filename}
+      shell: bash
+
+    # 出力された status を artifact に集積する
+    - name: Save status
+      uses: actions/upload-artifact@v2
+      with:
+        name: result
+        path: cypress/result
+        retention-days: 1

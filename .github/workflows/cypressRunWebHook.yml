@@ -1,0 +1,98 @@
+name: Cypress run (Web hook)
+
+on:
+  repository_dispatch:
+    types: [CypressRun]
+    # client_payload
+    # テスト対象の環境を選択
+    #   "env": "production" | "staging" | "development" (default: "production")
+    # 動画の記録を有効にする
+    #   "video": Boolean (default: true)
+    # GitHub Pages にレポートをデプロイ
+    #   "report": Boolean (default: true)
+    # Slack に通知
+    #   "notify": Boolean (default: true)
+
+jobs:
+  # コンテナ環境のセットアップ
+  setup:
+    runs-on: ubuntu-latest
+    container:
+      image: cypress/browsers:node16.13.0-chrome95-ff94
+      # GitHub Actions でファイル出力が可能なユーザーを指定
+      options: --user 1001
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ./.github/actions/setup
+
+  set-matrix:
+    runs-on: ubuntu-latest
+
+    outputs:
+      tests: ${{ steps.config.outputs.test_targets }}
+
+    steps:
+      - uses: actions/checkout@v2
+      - id: config
+        uses: ./.github/actions/loadConfig
+
+  # テストの実行
+  tests:
+    runs-on: ubuntu-latest
+    container:
+      image: cypress/browsers:node16.13.0-chrome95-ff94
+      options: --user 1001
+
+    needs: [setup, set-matrix]
+
+    strategy:
+      fail-fast: false
+      matrix:
+        tests: ${{ fromJson(needs.set-matrix.outputs.tests) }}
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ./.github/actions/tests
+        with:
+          env: ${{ (github.event.client_payload.env) || 'production' }}
+          video: ${{ (github.event.client_payload.video) || false }}
+          report: ${{ (github.event.client_payload.report) || false }}
+      - if: always() && ((github.event.client_payload.notify) || false)
+        uses: ./.github/actions/status
+        with:
+          status: ${{ (job.status == 'success' && '✅') || '❌' }}
+          name: ${{ matrix.tests }}
+
+  # Cypress の結果を HTML に変換して GitHub Pages にアップロードする
+  reporting:
+    if: always() && ((github.event.client_payload.report) || false)
+    runs-on: ubuntu-latest
+    container:
+      image: cypress/browsers:node16.13.0-chrome95-ff94
+      options: --user 1001
+
+    needs: tests
+
+    outputs:
+      link: ${{ steps.reporting.outputs.link }}
+
+    steps:
+      - uses: actions/checkout@v2
+      - id: reporting
+        uses: ./.github/actions/reporting
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+  # Slack でテスト結果を通知
+  notify:
+    if: always() && ((github.event.client_payload.notify) || false)
+    runs-on: ubuntu-latest
+
+    needs: [tests, reporting]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ./.github/actions/notify
+        with:
+          slack_webhook: ${{ secrets.SLACK_WEBHOOK }}
+          report_url: ${{ needs.reporting.outputs.link }}

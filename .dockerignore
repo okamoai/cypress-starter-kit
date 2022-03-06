@@ -1,0 +1,9 @@
+.github
+.git
+.husky
+.vscode
+.node-version
+.gitignore
+README.md
+Dockerfile*
+node_modules

@@ -1,0 +1,12 @@
+{
+  "baseUrl": "https://google.com",
+  "env": {},
+  "$schema": "https://on.cypress.io/cypress.schema.json",
+  "chromeWebSecurity": false,
+  "screenshotsFolder": "cypress/result/screenshots",
+  "videosFolder": "cypress/result/videos",
+  "reporter": "cypress-multi-reporters",
+  "reporterOptions": {
+    "configFile": "cypress/config/reporter.json"
+  }
+}

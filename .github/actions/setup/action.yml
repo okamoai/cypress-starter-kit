@@ -1,0 +1,34 @@
+# コンテナ環境のセットアップ
+name: Setup
+description: Setting up a container environment
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    # インストールのキャッシュ対象を指定
+    - name: Cache package install
+      id: cache_package_install
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/.cache/Cypress
+          node_modules
+        key: package-install-cache-${{ hashFiles('package-lock.json') }}
+
+    # CI 環境上で husky install を実行しないようにする
+    # --ignore-scripts を指定すると cypress install までスキップされるため、prepare の上書きで対応
+    # @see https://github.com/typicode/husky/blob/main/docs/README.md#disable-husky-in-cidocker
+    - name: Set npm config
+      run: npm set-script prepare ""
+      shell: bash
+
+    # パッケージのインストール。キャッシュがある場合はスキップ
+    - name: Install packages
+      if: steps.cache_package_install.outputs.cache-hit != 'true'
+      uses: cypress-io/github-action@v2
+      with:
+        runTests: false
+        install-command: npm ci --omit=dev

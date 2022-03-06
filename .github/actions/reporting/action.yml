@@ -1,0 +1,68 @@
+# Cypress の結果を HTML に変換して GitHub Pages にアップロードする
+name: Reporting
+description: Convert Cypress results to HTML and upload them to GitHub Pages
+
+inputs:
+  github_token:
+    description: GitHub token
+    required: true
+
+outputs:
+  link:
+    description: Report url link
+    value: ${{ steps.report-url.outputs.link }}
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    # setup で生成したキャッシュの復元
+    - name: Cache restore package
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/.cache/Cypress
+          node_modules
+        key: package-install-cache-${{ hashFiles('package-lock.json') }}
+
+    # tests で生成したレポートデータの復元
+    - name: Load result
+      uses: actions/download-artifact@v2
+      with:
+        name: result
+        path: cypress/result
+
+    # json ファイルの結合
+    - name: Merge report Json
+      run: npm run report:merge
+      shell: bash
+
+    # HTMLレポートデータの生成
+    - name: Generate report
+      run: npm run report:generate
+      shell: bash
+
+    # screenshot, video データのコピー
+    - name: Copy Media files
+      run: npm run report:copyMedia
+      shell: bash
+
+    # GitHub Pages にデプロイ
+    - name: Deploy GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ inputs.github_token }}
+        publish_dir: ./cypress/report
+        user_name: 'github-actions[bot]'
+        user_email: 'github-actions[bot]@users.noreply.github.com'
+
+    # レポートURLの生成
+    - name: Create Page URL
+      id: report-url
+      run: |
+        REPOSITORY_NAME=$(echo ${{ github.repository }} | sed -e "s#.*/##")
+        USER_NAME=$(echo ${{ github.repository }} | sed -e "s#/.*##")
+        echo "::set-output name=link::<https://${USER_NAME}.github.io/${REPOSITORY_NAME}|see for details...>"
+      shell: bash

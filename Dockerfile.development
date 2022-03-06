@@ -1,0 +1,22 @@
+# =============================
+# ビルドコマンド例
+# docker build -t cypress:develop -f Dockerfile.development .
+# コンテナ実行コマンド例
+# docker run -it --mount type=bind,source="$(pwd)"/cypress,target=/home/node/app/cypress -e LOCAL_UID=$(id -u $USER) -e LOCAL_GID=$(id -g $USER) cypress:develop bash
+# =============================
+FROM cypress/browsers:node16.13.0-chrome95-ff94
+
+WORKDIR /home/node/app
+
+COPY --chown=node:node . .
+
+RUN apt-get update \
+  && apt-get -y install --no-install-recommends gosu=1.10-1+b23 \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/* \
+  && rm -rf ./cypress \
+  && chmod +x ./development.sh \
+  && chown -R node:node /home/node/app \
+  && /usr/sbin/gosu node npm ci
+
+ENTRYPOINT ["./development.sh"]

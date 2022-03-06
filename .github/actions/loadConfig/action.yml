@@ -1,0 +1,29 @@
+# 設定ファイルの読み込み
+name: Load config
+description: Load .github/config.json
+
+outputs:
+  slack_channel:
+    description: Slack channel name
+    value: ${{ steps.slack-channel.outputs.value }}
+  slack_icon:
+    description: Slack icon
+    value: ${{ fromJson(steps.load-json.outputs.json).slack_icon }}
+  slack_title:
+    description: Slack title
+    value: ${{ fromJson(steps.load-json.outputs.json).slack_title }}
+  slack_username:
+    description: Slack user name
+    value: ${{ fromJson(steps.load-json.outputs.json).slack_username }}
+  test_targets:
+    description: Test targets
+    value: ${{ toJson(fromJson(steps.load-json.outputs.json).test_targets) }}
+
+runs:
+  using: composite
+  steps:
+    - id: load-json
+      run: |
+        content=`cat ./.github/config.json | tr -d '\n'`
+        echo "::set-output name=json::${content}"
+      shell: bash
