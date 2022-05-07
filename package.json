@@ -31,12 +31,12 @@
     "*.{js,ts}": "eslint --fix"
   },
   "engines": {
-    "node": "16.13.0",
-    "npm": "8.1.0"
+    "node": "16.14.2",
+    "npm": "8.5.0"
   },
   "volta": {
-    "node": "16.13.0",
-    "npm": "8.1.0"
+    "node": "16.14.2",
+    "npm": "8.5.0"
   },
   "bugs": {
     "url": "https://github.com/okamoai/cypress-starter-kit/issues"

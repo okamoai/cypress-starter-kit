@@ -1,4 +1,4 @@
-FROM cypress/browsers:node16.13.0-chrome95-ff94
+FROM cypress/browsers:node16.14.2-slim-chrome100-ff99-edge
 
 WORKDIR /home/node/app
 
