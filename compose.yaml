@@ -1,0 +1,8 @@
+services:
+  cypress:
+    build:
+      context: ./
+      dockerfile: ./.devcontainer/Dockerfile
+    tty: true
+    volumes:
+      - .:/home/node/app

@@ -43,19 +43,19 @@ npm install
 
 ### 2-b. コンテナ環境開発（マニュアル）の場合
 
-- docker イメージをビルドする。ビルドと同時に `npm install` も実行されるため、構成に変更がある場合は改めてビルドし直す必要がある。
+- docker-compose でイメージをビルドと実行を行うう。ビルドと同時に `npm install` も実行されるため、構成に変更がある場合は改めてビルドし直す必要がある。
 
 ```sh
-docker build -t cypress:develop -f Dockerfile.development .
+docker compose up
 ```
 
-- ビルドしたイメージを実行する。ホスト PC の `cypress` ディレクトリをマウントするため、ローカルのファイル変更がそのままコンテナ環境に反映される。
+- 実行したコンテナにログインするのはいつもの手順。
 
 ```sh
-docker run -it --mount type=bind,source="$(pwd)"/cypress,target=/home/node/app/cypress -e LOCAL_UID=$(id -u $USER) -e LOCAL_GID=$(id -g $USER) cypress:develop bash
+docker exec -it [コンテナID] bash
 ```
 
-- マウントされるのは `cypress` ディレクトリのみであり、それ以外のファイルに変更があった場合は改めてイメージをビルドし直す必要がある。
+- プロジェクトルートをマウントするので、ローカルとコンテナでファイルを共有している状態となっている。
 
 ### 2-c. コンテナ環境開発（VSCode Remote Containers）の場合
 
